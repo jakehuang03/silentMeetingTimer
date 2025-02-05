@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var isRunning = false
     @State private var elapsedTime = 0
     @State private var timer: Timer?
+    @State private var paused = false
     
     let intervals = [5, 10, 15, 30, 60]
     
@@ -20,7 +21,7 @@ struct ContentView: View {
         VStack {
             Text("Meeting Timer")
                 .font(.headline)
-            
+                .padding()
             if isRunning {
                 Text(formatTime(remainingTime))
             } else {
@@ -30,19 +31,31 @@ struct ContentView: View {
                 }
                 .pickerStyle(.navigationLink)
             }
-            
-            Button(isRunning ? "Stop" : "Start") {
-                isRunning ? stopTimer(): startTimer()
-                
+            if isRunning {
+                Button(paused ? "Resume" : "Pause") {
+                    paused ? startTimer() : pauseTimer()
+                }
+                Button("End") {
+                    stopTimer()
+                }
+                .padding()
             }
-            .padding()
+            else {
+                Button("Start") {
+                    startTimer()
+                }
+                .padding()
+            }
             
         }
     }
     
     func startTimer() {
-        remainingTime = meetingDuration * 60
+        if !paused {
+            remainingTime = meetingDuration * 60
+        }
         isRunning = true
+        paused = false
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             remainingTime -= 1
             if remainingTime == 0 {
@@ -56,6 +69,12 @@ struct ContentView: View {
         timer?.invalidate()
         timer = nil
     }
+    
+    func pauseTimer() {
+        paused.toggle()
+        timer?.invalidate()
+    }
+    
     func formatTime(_ seconds: Int) -> String {
         let minutes = seconds / 60
         let seconds = seconds % 60
